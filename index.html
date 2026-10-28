@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin - PRATAMA LEGAL</title>
+<style>
+:root{--g:#0f3d3e;--g2:#165a55;--a:#e3a82b;--bg:#eef2f2;--ink:#14201f;--mu:#5b6b69;--wa:#1fa855}
+*{box-sizing:border-box;margin:0}body{font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+.top{background:var(--g);color:#fff;padding:12px 4%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.logo{font:700 20px Georgia,serif}.logo b{color:var(--a)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 4% 0}.tabs button{border:0;padding:9px 16px;border-radius:9px 9px 0 0;background:#d5dfde;font:600 14px inherit;cursor:pointer}.tabs button.on{background:#fff;color:var(--g)}
+.pg{background:#fff;padding:20px 4%;min-height:70vh}
+.btn{display:inline-block;border:0;border-radius:8px;padding:8px 14px;font:600 13px inherit;background:var(--a);color:#1b1500;cursor:pointer;text-decoration:none}.btn.wa{background:var(--wa);color:#fff}.btn.em{background:#2b6cb0;color:#fff}.btn.o{background:#fff;border:1px solid var(--g);color:var(--g)}.btn.d{background:#d9363e;color:#fff}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid #b9c7c5;border-radius:8px;font:inherit}input:focus,select:focus,textarea:focus,.btn:focus-visible{outline:3px solid var(--a)}
+.st{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:14px 0}.st div{background:var(--bg);border-radius:12px;padding:14px;border-left:5px solid var(--a)}.st b{font-size:28px;display:block}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px;min-width:760px}th,td{text-align:left;padding:9px;border-bottom:1px solid #e1e8e7;vertical-align:top}th{background:var(--bg)}
+.tag{padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700;background:#e3a82b33;color:#7a5600}.tag.Selesai{background:#1fa85533;color:#0b6b32}.tag.Dibatalkan{background:#d9363e33;color:#9b1c22}
+.box{max-width:380px;margin:60px auto;background:#fff;padding:26px;border-radius:14px;border:1px solid #cfdad8}
+.err{color:#b4232a;font-weight:600;margin-top:8px}.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}label{display:block;font-weight:600;margin:10px 0 3px;font-size:13px}
+.sv{border:1px solid #d5dfde;border-radius:12px;padding:14px;margin-bottom:12px}.msg{white-space:pre-wrap;background:#f0f4f4;border-radius:8px;padding:10px;font:12px/1.5 monospace;margin-top:8px}
+h2,h3{font-family:Georgia,serif}
+</style></head><body>
+<div class="top"><div class="logo">PRATAMA <b>LEGAL</b> · Panel Admin</div><div class="row" style="margin:0"><button class="btn d" id="lo" onclick="logout()" style="display:none">Keluar</button></div></div>
+<div id="app"></div>
+<script>
+const $=s=>document.querySelector(s),L=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},S=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const ADMIN={u:'admin',p:'pratama2026'};
+const STS=['Baru','Verifikasi Dokumen','Proses OSS / Notaris','Menunggu Pembayaran','Selesai','Dibatalkan'];
+const fix=h=>{h=h.replace(/\D/g,'');return h.startsWith('0')?'62'+h.slice(1):h};
+const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let tab='ring';
+function render(){const A=$('#app');if(sessionStorage.getItem('pl_adm')!=='1'){$('#lo').style.display='none';A.innerHTML=`<div class="box"><h2>Masuk admin</h2><label>Username</label><input id="u"><label>Password</label><input id="p" type="password" onkeydown="if(event.key==='Enter')login()"><div class="err" id="er"></div><div class="row"><button class="btn" onclick="login()">Masuk</button></div><p style="color:var(--mu);margin-top:12px;font-size:12px">Default: admin / pratama2026 (ganti di kode file ini sebelum dipublikasikan).</p></div>`;return}
+$('#lo').style.display='';const T=[['ring','Ringkasan'],['ord','Pesanan'],['lay','Layanan & Harga'],['cus','Pelanggan']];
+A.innerHTML=`<div class="tabs">${T.map(t=>`<button class="${tab===t[0]?'on':''}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join('')}</div><div class="pg">${{ring,ord,lay,cus}[tab]()}</div>`}
+function login(){if($('#u').value===ADMIN.u&&$('#p').value===ADMIN.p){sessionStorage.setItem('pl_adm','1');render()}else $('#er').textContent='Username atau password admin salah.'}
+function logout(){sessionStorage.removeItem('pl_adm');render()}
+const SV=()=>L('pl_s',null),svName=id=>{const s=SV();return s?((s.find(x=>x.id===id)||{}).n||id):id};
+function ring(){const O=L('pl_o',[]),U=L('pl_u',[]),c=s=>O.filter(o=>o.st===s).length;
+return `<h2>Ringkasan</h2><div class="st"><div><b>${O.length}</b>Total pesanan</div><div><b>${c('Baru')}</b>Pesanan baru</div><div><b>${O.filter(o=>!['Baru','Selesai','Dibatalkan'].includes(o.st)).length}</b>Sedang diproses</div><div><b>${c('Selesai')}</b>Selesai</div><div><b>${U.length}</b>Pelanggan terdaftar</div></div><h3>Pesanan terbaru</h3>${tbl(O.slice(-5).reverse())}<p style="margin-top:14px;color:var(--mu)">Data konsumen dan admin tersimpan di browser yang sama (file harus dibuka dari folder yang sama).</p>`}
+function ord(){return `<h2>Semua pesanan</h2><div class="row"><input id="q" placeholder="Cari nomor, nama, layanan…" oninput="filt()" style="max-width:320px"><select id="fs" onchange="filt()" style="max-width:220px"><option value="">Semua status</option>${STS.map(s=>`<option>${s}</option>`).join('')}</select></div><div id="tb" style="margin-top:12px">${tbl(L('pl_o',[]).slice().reverse())}</div>`}
+function filt(){const q=$('#q').value.toLowerCase(),s=$('#fs').value;$('#tb').innerHTML=tbl(L('pl_o',[]).slice().reverse().filter(o=>(!s||o.st===s)&&(o.id+o.u+o.f.join(' ')+svName(o.sv)).toLowerCase().includes(q)))}
+function tbl(O){if(!O.length)return '<p style="margin-top:10px">Belum ada pesanan.</p>';
+return `<div class="tw"><table><tr><th>No</th><th>Layanan</th><th>Pemohon</th><th>Status</th><th>Aksi</th></tr>${O.map(o=>`<tr><td><b>${o.id}</b><br><small>${new Date(o.at).toLocaleDateString('id-ID')}</small></td><td>${esc(svName(o.sv))}</td><td>${esc(o.f[0])}<br><small>${esc(o.f[3])} · ${esc(o.f[5])}<br>@${esc(o.u)}</small></td><td><span class="tag ${o.st}">${o.st}</span></td><td><button class="btn s" onclick="openO('${o.id}')">Kelola</button></td></tr>`).join('')}</table></div>`}
+function openO(id){const o=L('pl_o',[]).find(x=>x.id===id),n=fix(o.f[1]),t=encodeURIComponent(`Halo ${o.f[0]}, kami PRATAMA LEGAL terkait pesanan ${o.id} (${svName(o.sv)}). Status saat ini: ${o.st}.${o.nt?' Catatan: '+o.nt:''}`);
+$('.pg').innerHTML=`<button class="btn o" onclick="render()">← Kembali</button><h2 style="margin-top:12px">Pesanan ${o.id}</h2><p>${esc(svName(o.sv))} · @${esc(o.u)}</p>
+<div class="msg">Nama: ${esc(o.f[0])}\nWhatsApp: ${esc(o.f[1])}\nEmail: ${esc(o.f[2]||'-')}\nUsaha: ${esc(o.f[3]||'-')}\nKBLI/bidang: ${esc(o.f[4]||'-')}\nWilayah: ${esc(o.f[5])}\nAlamat: ${esc(o.f[6]||'-')}\nCatatan pelanggan: ${esc(o.f[7]||'-')}\n\nDokumen yang disiapkan:\n${o.docs.length?o.docs.map(d=>'- '+esc(d)).join('\n'):'- (belum ada)'}</div>
+<label>Status</label><select id="ns">${STS.map(s=>`<option ${s===o.st?'selected':''}>${s}</option>`).join('')}</select><label>Catatan untuk pelanggan (tampil di akun mereka)</label><textarea id="nn" rows="3">${esc(o.nt)}</textarea>
+<div class="row"><button class="btn" onclick="saveO('${o.id}')">Simpan</button><a class="btn wa" target="_blank" href="https://wa.me/${n}?text=${t}">WhatsApp pelanggan</a>${o.f[2]?`<a class="btn em" href="mailto:${esc(o.f[2])}?subject=${encodeURIComponent('Pesanan '+o.id+' - PRATAMA LEGAL')}&body=${t}">Email pelanggan</a>`:''}<button class="btn d" onclick="delO('${o.id}')">Hapus</button></div>`}
+function saveO(id){const O=L('pl_o',[]),o=O.find(x=>x.id===id);o.st=$('#ns').value;o.nt=$('#nn').value.trim();S('pl_o',O);tab='ord';render()}
+function delO(id){if(confirm('Hapus pesanan '+id+'?')){S('pl_o',L('pl_o',[]).filter(x=>x.id!==id));tab='ord';render()}}
+function lay(){const s=SV();if(!s)return '<h2>Layanan &amp; Harga</h2><p>Buka dulu halaman konsumen sekali agar daftar layanan default termuat, lalu kembali ke sini untuk mengubah harga dan daftar dokumen.</p><a class="btn" href="pratama-legal-konsumen.html">Buka halaman konsumen</a><p style="margin-top:10px"><button class="btn o" onclick="seed()">Atau muat layanan default di sini</button></p>';
+return `<h2>Layanan &amp; Harga</h2><p style="color:var(--mu)">Perubahan langsung tampil di sisi konsumen. Satu dokumen per baris.</p>${s.map((x,i)=>`<div class="sv"><b>${x.ic} ${esc(x.n)}</b><label>Harga</label><input id="p${i}" value="${esc(x.p)}"><label>Dokumen yang dibutuhkan</label><textarea id="d${i}" rows="5">${esc(x.docs.join('\n'))}</textarea><div class="row"><button class="btn" onclick="saveS(${i})">Simpan</button><button class="btn d" onclick="delS(${i})">Hapus layanan</button></div></div>`).join('')}<div class="sv"><b>+ Layanan baru</b><label>Nama</label><input id="nn1"><label>Harga</label><input id="np1"><label>Deskripsi singkat</label><input id="nd1"><button class="btn" style="margin-top:8px" onclick="addS()">Tambah</button></div>`}
+function seed(){alert('Silakan buka pratama-legal-konsumen.html sekali; daftar layanan akan termuat otomatis setelah Anda menyimpan perubahan pertama dari panel ini.');}
+function saveS(i){const s=SV();s[i].p=$('#p'+i).value.trim();s[i].docs=$('#d'+i).value.split('\n').map(x=>x.trim()).filter(Boolean);S('pl_s',s);alert('Tersimpan');}
+function delS(i){if(!confirm('Hapus layanan ini?'))return;const s=SV();s.splice(i,1);S('pl_s',s);render()}
+function addS(){const n=$('#nn1').value.trim();if(!n)return alert('Nama wajib diisi');const s=SV();s.push({id:'x'+Date.now(),ic:'📄',n,p:$('#np1').value.trim()||'Hubungi kami',d:$('#nd1').value.trim(),docs:['KTP pemohon','NPWP','Dokumen pendukung lain']});S('pl_s',s);render()}
+function cus(){const U=L('pl_u',[]),O=L('pl_o',[]);return `<h2>Pelanggan (${U.length})</h2>${U.length?`<div class="tw"><table><tr><th>Username</th><th>Nama</th><th>WhatsApp</th><th>Email</th><th>Pesanan</th><th>Aksi</th></tr>${U.map(u=>`<tr><td>@${esc(u.u)}</td><td>${esc(u.nm)}</td><td>${esc(u.hp)}</td><td>${esc(u.em||'-')}</td><td>${O.filter(o=>o.u===u.u).length}</td><td><a class="btn wa s" target="_blank" href="https://wa.me/${fix(u.hp)}">WhatsApp</a> ${u.em?`<a class="btn em s" href="mailto:${esc(u.em)}">Email</a>`:''} <button class="btn d s" onclick="resetP('${esc(u.u)}')">Reset password</button></td></tr>`).join('')}</table></div>`:'<p>Belum ada pelanggan terdaftar.</p>'}`}
+function resetP(u){const p=prompt('Password baru untuk @'+u+' (min. 6 karakter):');if(!p||p.length<6)return;const U=L('pl_u',[]);U.find(x=>x.u===u).p=p;S('pl_u',U);alert('Password diubah.')}
+render();
+</script></body></html>
